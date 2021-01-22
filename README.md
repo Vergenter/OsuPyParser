@@ -1,0 +1,1 @@
+## OsuPyParser - A powerful package for parsing .osu extention file

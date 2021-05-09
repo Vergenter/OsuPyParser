@@ -81,6 +81,8 @@ class OsuFile:
                     # Skip empty line.
                     continue
 
+                one_line = one_line.strip()
+
                 if "[General]" in one_line:
                     # Set section id.
                     section_id = 1

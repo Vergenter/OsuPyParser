@@ -1,26 +1,29 @@
 from .timingpoint import TimingPoint
 
 class TimingPoints:
-    def __init__(self):
-        self.timing_points = []
 
-    def parse(self, lines: str) -> None:
-        line = lines.split(',')
+    @classmethod
+    def parse_header(cls, line: str, osu_map: object) -> None:
+
+        item = line.split(',')
+        if not osu_map.timing_points: first_line = True
+        else: first_line = False
+
         # try method on stupid [coLoURs]
         try:
-            time = int(line[0])
-            beat_length = float(line[1])
-            bpm = int(line[2])
-            sample_set = int(line[3])
-            sample_index = int(line[4])
-            sample_vol = int(line[5])
-            uninherited = int(line[6]) == 1
-            effects = int(line[7])
+            if first_line:
+                osu_map.bpm = round(1000/float(item[1])*60, 2)
+            time = int(item[0])
+            beat_length = float(item[1])
+            bpm = int(item[2])
+            sample_set = int(item[3])
+            sample_index = int(item[4])
+            sample_vol = int(item[5])
+            uninherited = int(item[6]) == 1
+            effects = int(item[7])
 
-            self.timing_points.append(TimingPoint(time, beat_length, bpm, sample_set, sample_index, sample_vol, uninherited, effects))
+            osu_map.timing_points.append(TimingPoint(time, beat_length, bpm, sample_set, sample_index, sample_vol, uninherited, effects))
         except ValueError:
             # we got an stupid [Colours]
             # just skip it
             pass
-
-timingpoint = TimingPoints()

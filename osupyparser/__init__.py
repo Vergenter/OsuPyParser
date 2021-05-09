@@ -1,1 +1,1 @@
-from .osuparser import OsuParser
+from .osuparser import OsuFile

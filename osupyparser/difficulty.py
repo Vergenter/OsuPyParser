@@ -1,27 +1,18 @@
 
 class Difficulty:
+    
+    @classmethod
+    def parse_header(cls, line: str, osu_map: object):
 
-    def __init__(self):
-        self.hp: float = 0.0
-        self.cs: float = 0.0
-        self.od: float = 0.0
-        self.ar: float = 0.0
-        self.slider_multiplier: int = 0
-        self.slider_tick_rate: int = 0
-
-    def parse(self, lines: str):
-
-        if "HPDrainRate" in lines:
-            self.hp = float(lines.split("HPDrainRate:")[1])
-        if "CircleSize" in lines:
-            self.cs = float(lines.split("CircleSize:")[1])
-        if "OverallDifficulty" in lines:
-            self.od = float(lines.split("OverallDifficulty:")[1])
-        if "ApproachRate" in lines:
-            self.ar = float(lines.split("ApproachRate:")[1])
-        if "SliderMultiplier" in lines:
-            self.slider_multiplier = int(lines.split("SliderMultiplier:")[1])
-        if "SliderTickRate" in lines:
-            self.slider_tick_rate = int(lines.split("SliderTickRate:")[1])
-            
-difficulty = Difficulty()
+        if "HPDrainRate" in line:
+            osu_map.hp = float(line.split("HPDrainRate:")[1])
+        if "CircleSize" in line:
+            osu_map.cs = float(line.split("CircleSize:")[1])
+        if "OverallDifficulty" in line:
+            osu_map.od = float(line.split("OverallDifficulty:")[1])
+        if "ApproachRate" in line:
+            osu_map.ar = float(line.split("ApproachRate:")[1])
+        if "SliderMultiplier" in line:
+            osu_map.slider_multiplier = float(line.split("SliderMultiplier:")[1])
+        if "SliderTickRate" in line:
+            osu_map.slider_tick_rate = int(line.split("SliderTickRate:")[1])

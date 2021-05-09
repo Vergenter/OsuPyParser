@@ -1,27 +1,54 @@
 from .const import OBJECT_TYPE
-from .hitobjects import Slider, Spinner, ManiaHold, HitObjects, HitCircle
+from .hitobjects import Slider, Spinner, ManiaHold, HitObjects, HitCircle, ComboSkip
+
+# Define it to cache.
+SLIDER_TYPES = ['C','L','P','B']
 
 class HitObject:
-    def __init__(self):
-        self.hit_object = []
 
-    def parse(self, lines: str):
+    @classmethod
+    def parse_header(cls, line: str, osu_map: object):
 
-        line = lines.split(",")
-        x = int(line[0])
-        y = int(line[1])
-        time = int(line[2])
-        hit_type = int(line[3])
-        params = line[5]
+        item = line.split(",")
+        if not osu_map.hit_events: first_line = True
+        else: first_line = False
+        x = int(item[0])
+        y = int(item[1])
+        time = int(item[2])
+        hit_type = int(item[3])
+        hitsound = int(item[4])
+        params = None
+        info = dict()
+        if first_line:
+            osu_map.time_start = time
+        else:
+            osu_map.time_end = time
+
+        if len(item) > 5:
+            # Check for external params.
+            if not any(curve_type == item[5][0] for curve_type in SLIDER_TYPES):
+                params = line[5]
+            else:
+                try:
+                    slider_info = item[5].split("|")
+                    info['curve_type'] = slider_info[0]
+                    info['curve_points'] = object(slider_info[1].split(":"))
+                    info['slides'] = item[6]
+                    info['length'] = item[7]
+                    info['edge_sounds'] = item[8]
+                    info['edge_sets'] = item[9]
+                except Exception:
+                    pass
 
         target_object = HitObjects
 
-        if hit_type & OBJECT_TYPE.HIT_CIRCLE or hit_type & OBJECT_TYPE.HIT_CIRCLE_NEW: target_object = HitCircle
+        if hit_type & OBJECT_TYPE.HIT_CIRCLE: target_object = HitCircle
         elif hit_type & OBJECT_TYPE.SLIDER: target_object = Slider
+        elif hit_type & OBJECT_TYPE.COMBO_SKIP: target_object = ComboSkip
         elif hit_type & OBJECT_TYPE.SPINNER: target_object = Spinner
         elif hit_type & OBJECT_TYPE.MANIAHOLD: target_object = ManiaHold
 
-        self.hit_object.append(target_object(x, y, time, params))
-
-hitobject = HitObject()
-
+        if not info:
+            osu_map.hit_events.append(target_object(x, y, time, hitsound, params))
+        else:
+            osu_map.hit_events.append(target_object(x, y, time, hitsound, params, **info))

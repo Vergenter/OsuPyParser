@@ -1,147 +1,125 @@
-from .difficulty import difficulty
-from .editor import editor
-from .general import general
-from .metadata import metadata
-from .timingpoints import timingpoint
-from .hitobject import hitobject
+from .difficulty import Difficulty
+from .editor import Editor
+from .general import General
+from .metadata import Metadata
+from .timingpoints import TimingPoints
+from .hitobject import HitObject
+from .events import Events
 
+class OsuFile:
 
-class OsuParser:
+    def __init__(self, file_path: str):
+        """Initialise placeholders."""
+        self._file_path: str = file_path
 
-    def __init__(self, filePath: str):
-        self.filePath: str = filePath
-
-        ### GENERAL ###
+        # General.
         self.mode: int = 0
-        self.formatVersion: int = 0
+        self.file_version: int = 0
         self.audio: str = ""
-        self.leadIn: int = 0
-        self.previewTime: int = 0
+        self.lead_in: int = 0
+        self.preview_time: int = 0
         self.countdown: int = 0
-        self.sampleSet: str = ""
-        self.stackLeniency: float = 0.0
-        self.letterboxInBreaks: int = 0
-        self.widescreenStoryboard: int = 0
+        self.sample_set: str = ""
+        self.stack_leniency: float = 0.0
+        self.letterbox_in_breaks: int = 0
+        self.widescreen_storyboard: int = 0
 
-        ### EDITOR ###
-        self.distanceSpacing: float = 0.0
-        self.gridSize: int = 0
-        self.timelineZoom: float = 0.0
-        self.beatDivisor: int = 0
+        # Editor.
+        self.distance_spacing: float = 0.0
+        self.grid_size: int = 0
+        self.timeline_zoom: float = 0.0
+        self.beat_divisor: int = 0
+        self.time_start: int = 0
+        self.time_end: int = 0
+        self.play_length: float = 0.0
+        self.drain_length: float = 0.0
+        self.break_time: float = 0.0
+        self.total_hits: float = 0.0
 
-        ### DIFFICULTY ###
-        self.hp: int = 0
-        self.cs: int = 0
-        self.od: int = 0
-        self.ar: int = 0
-        self.sliderMultiplier: int = 0
-        self.sliderTickRate: int = 0
+        # Difficulty.
+        self.bpm: float = -1.00
+        self.hp: float = 0.0
+        self.cs: float = 0.0
+        self.od: float = 0.0
+        self.ar: float = 0.0
+        self.slider_multiplier: float = 0.0
+        self.slider_tick_rate: int = 0.0
 
-        ### METADATA ###
+        # Metadata.
         self.title: str = ""
-        self.titleUnicode: str = ""
+        self.title_unicode: str = ""
         self.artist: str = ""
-        self.artistUnicode: str = ""
+        self.artist_unicode: str = ""
         self.creator: str = ""
         self.version: str = ""
         self.tags: str = ""
         self.source: str = ""
-        self.mapID: int = 0
-        self.setID: int = 0
+        self.map_id: int = 0
+        self.set_id: int = 0
 
-        ### TIMINGPOINTS AND HITOBJECTS ###
-        self.timingPoints = []
-        self.hitEvents = []
+        # TIMINGPOINTS AND HITOBJECTS
+        self.timing_points: list = []
+        self.hit_events: list = []
 
-    def parseMap(self):
-        # parse map
-        currentSection = ""
-        file = open(self.filePath, 'rb')
+    def parse(self):
+        """Function to get current section we are on and parse osu file data then return self."""
 
-        # small check
-        if "osu file format" not in (formatVersion := file.readline().strip().decode("utf-8")):
-            raise ValueError('Unknown header')
-        else:
-            self.formatVersion = int(formatVersion[17:19])
+        # Open beatmap file.
+        section_id = 0
+        with open(self._file_path, "r") as stream:
 
-        while True:
+            # First parse header from file.
+            header_line = stream.readline()
+            if "osu file format" not in header_line:
+                raise ValueError("Unknown file header!")
+            self.file_version = int(header_line[17:19])
 
-            # loop it
-            line = file.readline()
+            # Now parse section id.
+            lines = stream.readlines()
+            for one_line in lines:
+                if not one_line or one_line == "":
+                    # Skip empty line.
+                    continue
 
-            if not line:
-                break
+                if "[General]" in one_line:
+                    # Set section id.
+                    section_id = 1
+                    continue
+                elif "[Editor]" in one_line:
+                    section_id = 2
+                    continue
+                elif "[Metadata]" in one_line:
+                    section_id = 3
+                    continue
+                elif "[Difficulty]" in one_line:
+                    section_id = 4
+                    continue
+                elif "[TimingPoints]" in one_line:
+                    section_id = 5
+                    continue
+                elif "[HitObjects]" in one_line:
+                    section_id = 6
+                    continue
+                elif "[Events]" in one_line:
+                    section_id = 7
+                    continue
 
-            header = line.strip().decode("utf-8")
+                if section_id == 0:
+                    continue
 
-            # line is empty
-            if header == "":
-                continue
+                func = {
+                    1: General.parse_header,
+                    2: Editor.parse_header,
+                    3: Metadata.parse_header,
+                    4: Difficulty.parse_header,
+                    5: TimingPoints.parse_header,
+                    6: HitObject.parse_header,
+                    7: Events.parse_header
+                }.get(section_id)
+                func(one_line, self)
 
-            ### SECTIONS ###
-            if header == "[General]":
-                currentSection = "General"
-                continue
-            if header == "[Editor]":
-                currentSection = "Editor"
-                continue
-            if header == "[Metadata]":
-                currentSection = "Metadata"
-                continue
-            if header == "[Difficulty]":
-                currentSection = "Difficulty"
-                continue
-            if header == "[TimingPoints]":
-                currentSection = "TimingPoints"
-                continue
-            if header == "[HitObjects]":
-                currentSection = "HitObjects"
-                continue
-
-            ### SECTIONS PARSER ###
-            if currentSection == "General":
-                general.parse(header)
-                ### fill the self with parsed ###
-                self.mode = general.mode
-                self.audio = general.audio_name
-                self.leadIn = general.audio_lead_in
-                self.previewTime = general.preview_time
-                self.countdown = general.count_down
-                self.sampleSet = general.sample_set
-                self.stackLeniency = general.stack_leniency
-                self.letterboxInBreaks = general.letterbox_in_breaks
-                self.widescreenStoryboard = general.widescreen_storyboard
-            if currentSection == "Editor":
-                editor.parse(header)
-                self.distanceSpacing = editor.distance_spacing
-                self.gridSize = editor.grid_size
-                self.timelineZoom = editor.timeline_zoom
-                self.beatDivisor = editor.beat_divisor
-            if currentSection == "Metadata":
-                metadata.parse(header)
-                self.title = metadata.title
-                self.titleUnicode = metadata.title_unicode
-                self.artist =  metadata.artist
-                self.artistUnicode = metadata.artist_unicode
-                self.creator = metadata.creator
-                self.version = metadata.version
-                self.tags = metadata.tags
-                self.source = metadata.source
-                self.mapID = metadata.beatmap_id
-                self.setID = metadata.beatmapset_id
-            if currentSection == "Difficulty":
-                difficulty.parse(header)
-                self.hp = difficulty.hp
-                self.cs = difficulty.cs
-                self.od = difficulty.od
-                self.ar = difficulty.ar
-                self.sliderMultiplier = difficulty.slider_multiplier
-                self.sliderTickRate = difficulty.slider_tick_rate
-            if currentSection == "TimingPoints":
-                timingpoint.parse(header)
-                self.timingPoints = timingpoint.timing_points
-            if currentSection == "HitObjects":
-                hitobject.parse(header)
-                self.hitEvents = hitobject.hit_object
-        file.close()
+            # Parse some extra things.
+            self.play_length = (self.time_end)/1000
+            self.drain_length = max(0, (self.time_end - self.time_start - self.break_time) / 1000)
         return self
+

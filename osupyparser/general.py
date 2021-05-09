@@ -1,39 +1,27 @@
-### I DONT FEEL LIKE MAKING THIS ASYNC AT ALL CUZ IT MIGTH BREAK PERFORMANCE ###
 
 class General:
 
-    # we making intance of class
-    def __init__(self):
-        self.audio_name: str = ""
-        self.audio_lead_in: int = 0
-        self.preview_time: int = 0
-        self.count_down: int = 0
-        self.sample_set: str = ""
-        self.stack_leniency: float = 0.0
-        self.mode: int = 0
-        self.letterbox_in_breaks: int = 0
-        self.widescreen_storyboard: int = 0
-
-    def parse(self, lines: str) -> None:
+    @classmethod
+    def parse_header(cls, line: str, osu_map: object) -> None:
         # we will parse map strings
-        if "AudioFilename" in lines:
-            # we will use split()[1] to get info
-            self.audio_name = str(lines.split("AudioFilename: ")[1])
-        if "AudioLeadIn" in lines:
-            self.audio_lead_in = int(lines.split("AudioLeadIn: ")[1])
-        if "PreviewTime" in lines:
-            self.preview_time = int(lines.split("PreviewTime: ")[1])
-        if "Countdown" in lines:
-            self.count_down = int(lines.split("Countdown: ")[1])
-        if "SampleSet" in lines:
-            self.sample_set = str(lines.split("SampleSet: ")[1])
-        if "StackLeniency" in lines:
-            self.stack_leniency = float(lines.split("StackLeniency: ")[1])
-        if "Mode" in lines:
-            self.mode = int(lines.split("Mode: ")[1])
-        if "LetterboxInBreaks" in lines:
-            self.letterbox_in_breaks = int(lines.split("LetterboxInBreaks: ")[1])
-        if "WidescreenStoryboard" in lines:
-            self.widescreen_storyboard = int(lines.split("WidescreenStoryboard: ")[1])
-
-general = General()
+        not_parsed = True
+        while not_parsed:
+            if "AudioFilename" in line:
+                osu_map.audio = str(line.split("AudioFilename: ")[1])
+            elif "AudioLeadIn" in line:
+                osu_map.lead_in = int(line.split("AudioLeadIn: ")[1])
+            elif "PreviewTime" in line:
+                osu_map.preview_time = int(line.split("PreviewTime: ")[1])
+            elif "Countdown" in line:
+                osu_map.countdown = int(line.split("Countdown: ")[1])
+            elif "SampleSet" in line:
+                osu_map.sample_set = str(line.split("SampleSet: ")[1])
+            elif "StackLeniency" in line:
+                osu_map.stack_leniency = float(line.split("StackLeniency: ")[1])
+            elif "Mode" in line:
+                osu_map.mode = int(line.split("Mode: ")[1])
+            elif "LetterboxInBreaks" in line:
+                osu_map.letterbox_in_breaks = int(line.split("LetterboxInBreaks: ")[1])
+            elif "WidescreenStoryboard" in line:
+                osu_map.widescreen_storyboard = int(line.split("WidescreenStoryboard: ")[1])
+            not_parsed = False

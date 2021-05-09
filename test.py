@@ -1,7 +1,7 @@
-import osupyparser
+from osupyparser import OsuFile
 
-osuMap = osupyparser.OsuParser("PATH TO A .osu FILE")
+osuMap = OsuFile("./test.osu")
 
-mapInfo = osuMap.parseMap()
+mapInfo = osuMap.parse()
 
-print(mapInfo.formatVersion, mapInfo.artist)
+print(f"{mapInfo.bpm}bpm {mapInfo.artist}")

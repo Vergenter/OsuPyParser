@@ -66,10 +66,10 @@ class OsuFile:
 
         # Open beatmap file.
         section_id = 0
-        with open(self._file_path, "r") as stream:
-
+        with open(self._file_path, "rb") as stream:
+            
             # First parse header from file.
-            header_line = stream.readline()
+            header_line = stream.readline().decode("utf-8")
             if "osu file format" not in header_line:
                 raise ValueError("Unknown file header!")
             self.file_version = int(header_line[17:19])
@@ -77,6 +77,7 @@ class OsuFile:
             # Now parse section id.
             lines = stream.readlines()
             for one_line in lines:
+                one_line = one_line.decode("utf-8")
                 if not one_line or one_line == "":
                     # Skip empty line.
                     continue

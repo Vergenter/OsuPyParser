@@ -1,7 +1,8 @@
 import struct
 
+
 class BinaryRotator:
-    """A class for bytes reading."""
+    """A class for bytes readizng."""
 
     def __init__(self, data: bytes) -> None:
         self.buffer: bytes = data
@@ -19,27 +20,27 @@ class BinaryRotator:
         return int.from_bytes(
             self.read(size),
             "little",
-            signed= signed
+            signed=signed
         )
 
     def read_u8(self) -> int:
         return self.read_int(1, False)
-    
+
     def read_u16(self) -> int:
         return self.read_int(2, False)
-    
+
     def read_i16(self) -> int:
         return self.read_int(2, True)
-    
+
     def read_u32(self) -> int:
         return self.read_int(4, False)
-    
+
     def read_i32(self) -> int:
         return self.read_int(4, True)
 
     def read_u64(self) -> int:
         return self.read_int(8, False)
-    
+
     def read_i64(self) -> int:
         return self.read_int(8, True)
 
